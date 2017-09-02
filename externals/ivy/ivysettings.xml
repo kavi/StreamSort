@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ivysettings>
+  <settings defaultResolver="chained"/>
+  <caches default="myCache" artifactPattern="[organisation]/[conf]/[type]/[artifact]-[revision].[ext]">
+    <cache name="myCache" basedir="/usr/share/ivy/cache"/>
+  </caches>
+  <property name="java.net.maven.pattern" value="[organisation]/jars/[module]-[revision].[ext]"/>
+  <resolvers>
+    <chain name="chained" returnFirst="true">
+      <ibiblio name="central" m2compatible="true"/>
+      <url name="url" cache="myCache">
+        <ivy pattern="http://178.79.183.218/ivy/[organization]/[module]/[module]-[revision]/ivy-[revision].xml"/>
+        <artifact pattern="http://178.79.183.218/ivy/[organization]/[module]/[module]-[revision]/[artifact]-[revision].[ext]"/>
+      </url>
+      <filesystem name="publisher" cache="myCache">
+        <ivy pattern="/var/www/ivy/[organization]/[module]/[module]-[revision]/ivy-[revision].xml"/>
+        <artifact pattern="/var/www/ivy/[organization]/[module]/[module]-[revision]/[artifact]-[revision].[ext]"/>
+      </filesystem>
+    </chain>
+  </resolvers>
+</ivysettings>

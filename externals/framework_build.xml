@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="framework_build">
+	<import file="java_build.xml" />
+
+	<property name="documentation.file" location="./documentation/overview.md" />
+	<property name="overview.html" value="${tmp.dir}/overview.html" />
+
+	
+	<target name="check-javadoc-overview">
+		<available file="${documentation.file}" property="overview.exists" />
+	</target>
+
+	<target name="generate-html-docs" depends="check-javadoc-overview" if="overview.exists">
+		<echo message="Using markdown file '${documentation.file}' to generate overview.html" />
+		<java classname="org.markdownj.MarkdownProcessor" classpathref="utility.lib.path" input="${documentation.file}" output="${overview.html}">
+		</java>
+	</target>
+
+	<target name="default-html-docs" depends="check-javadoc-overview" unless="overview.exists">
+		<echo message="Generating default overview.html file" />
+		<echo message="&lt;h1&gt;${ant.project.name}&lt;/h1&gt;" file="${overview.html}" />
+	</target>
+
+	<target name="javadoc" depends="init, retrieve, generate-html-docs, default-html-docs" description="Generates javadoc for the project.">
+		<path id="compiled.classes.path">
+			<fileset dir="${build.class.dir}" includes="**/*.class" />
+		</path>
+		<javadoc overview="${overview.html}" sourcepath="${src.dir}" doclet="ch.raffael.doclets.pegdown.PegdownDoclet" docletpathref="utility.lib.path" destdir="${javadoc.dir}">
+			<classpath refid="compiled.classes.path" />
+			<classpath refid="compile.lib.path" />
+		</javadoc>
+	</target>
+</project>

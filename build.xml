@@ -1,0 +1,5 @@
+<project name="StreamSort" default="compile" xmlns:ivy="antlib:org.apache.ivy.ant">
+  <property name="source" value="1.6"/>
+  <property name="target" value="1.6"/>
+  <import file="externals/java_build.xml"/>
+</project>

@@ -1,0 +1,18 @@
+<ivy-module version="1.0">
+  <info organisation="internal" module="StreamSort" status="integration"/>
+  <configurations>
+    <conf name="compile"/>
+    <conf name="runtime" />
+    <conf name="src"/>
+    <conf name="test"/>
+  </configurations>
+  <publications>
+    <artifact conf="compile,runtime"/>
+    <artifact name="StreamSort-src" type="source" ext="jar" conf="src" />
+  </publications>
+  <dependencies defaultconf="compile->compile;runtime->runtime;src->src">
+    <dependency org="thirdparty" name="junit" rev="4.11" conf="test->compile;src->src"/>
+    <dependency org="thirdparty" name="commons-io" rev="2.4" conf="test->compile;src->src"/>
+    <dependency org="thirdparty" name="cobertura" rev="1.9.4.1" conf="test->compile"/>
+  </dependencies>
+</ivy-module>

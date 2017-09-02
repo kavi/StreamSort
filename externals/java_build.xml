@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="java_build">
+  <import file="common.xml"/>
+	
+  <target name="pre-compile">
+    <echo message="java_build.xml"/>
+  </target>
+	
+  <target name="compile" depends="retrieve, pre-compile">
+    <javac includeantruntime="false" srcdir="${src.dir}" source="${source}" target="${target}" destdir="${build.class.dir}" classpathref="compile.lib.path" debug="true" debuglevel="${debuglevel}"/>
+  </target>
+	
+  <target name="dist-src">
+    <zip destfile="${dist.dir}/${ant.project.name}-sources.jar" basedir="${src.dir}" includes="**/*.java"/>
+  </target>
+
+  <target name="pre-dist">
+  </target>
+  
+  <target name="post-dist">
+  </target>
+	
+  <target name="do-dist" depends="compile, javadoc">
+    <jar destfile="${dist.dir}/${ant.project.name}.jar" basedir="${build.class.dir}">
+	  <manifest>
+	    <attribute name="Implementation-Vendor" value="dk.javacode"/>
+	    <attribute name="Implementation-Title" value="${ant.project.name}"/>
+	    <attribute name="Implementation-Version" value="${project.version}"/>
+		<attribute name="Pusblish-Date" value="${timestamp}"/>
+	  </manifest>
+	</jar>
+	<zip destfile="${dist.dir}/${ant.project.name}-javadoc.jar" basedir="${javadoc.dir}"/>
+  </target>
+
+  <target name="dist" depends="pre-dist, do-dist, post-dist">
+  </target>
+	
+  <target name="publish" depends="dist, dist-src" if="project.version" description="Publish the project with the given project.version">
+    <ivy:resolve revision="${project.version}"/>
+    <ivy:deliver pubrevision="${project.version}"/>
+    <ivy:publish organisation="dk.javacode" module="${ant.project.name}" revision="${project.version}" resolver="publisher" pubrevision="${project.version}">
+      <artifacts pattern="${dist.dir}/[artifact].[ext]"/>
+    </ivy:publish>
+  </target>
+	
+  <target name="compile-test" depends="compile">
+    <javac includeantruntime="false" destdir="${test.class.dir}" source="${source}" target="${target}" srcdir="${test.src.dir}">
+      <classpath location="${build.class.dir}"/>
+      <classpath refid="test.lib.path"/>
+      <classpath refid="compile.lib.path"/>
+    </javac>
+  </target>
+	
+  <target name="cobertura" depends="compile-test">
+    <taskdef resource="tasks.properties" classpathref="test.lib.path"/>
+    <delete file="cobertura.ser"/>
+    <cobertura-instrument todir="${instrument.class.dir}">
+      <ignore regex="org.apache.log4j.*"/>
+      <fileset dir="${build.class.dir}">
+        <include name="**/*.class"/>
+      </fileset>
+      <classpath refid="compile.lib.path"/>
+      <classpath refid="test.lib.path"/>
+      <!--classpath refid="cobertura.lib.path"/-->
+    </cobertura-instrument>
+  </target>
+	
+  <!-- placeholder -->
+  <target name="pre-test">
+  </target>
+	
+  <target name="test" depends="cobertura,pre-test" description="Runs all unit tests and creates unit test and coverage reports.">
+    <delete dir="${test.tmp.dir}"/>
+    <delete dir="${junit.reports.dir}"/>
+    <mkdir dir="${test.tmp.dir}"/>
+    <mkdir dir="${junit.reports.dir}"/>
+    <mkdir dir="${cobertura.reports.dir}"/>
+    <junit printsummary="true" failureproperty="junit.failure" fork="yes">
+      <jvmarg value="-Dtest.db.user=${db.user}"/>
+      <jvmarg value="-Dtest.db.host=${db.host}"/>
+      <jvmarg value="-Dtest.db.pass=${db.pass}"/>
+      <jvmarg value="-XX:-UseSplitVerifier"/>
+      <classpath refid="test.lib.path"/>
+      <classpath refid="runtime.lib.path"/>
+      <classpath location="${instrument.class.dir}"/>
+      <classpath location="${build.class.dir}"/>
+      <classpath location="${test.class.dir}"/>
+      <batchtest todir="${test.tmp.dir}">
+        <fileset dir="${test.class.dir}" includes="**/*Test.*"/>
+        <formatter type="xml"/>
+      </batchtest>
+    </junit>
+    <junitreport todir="${junit.reports.dir}">
+      <fileset dir="${test.tmp.dir}"/>
+      <report todir="${junit.reports.dir}"/>
+    </junitreport>
+    <cobertura-report format="${cobertura.format}" srcdir="${src.dir}" destdir="${cobertura.reports.dir}"/>
+    <echo message="Unit test reports can be found at ${basedir}/${junit.reports.dir}/index.html"/>
+    <echo message="Coverage reports can be found at ${basedir}/${cobertura.reports.dir}/index.html"/>
+    <fail if="junit.failure" message="Unit test(s) failed!"/>
+  </target>
+  
+  <target name="javadoc" depends="init, retrieve" description="Generates javadoc for the project.">
+    <path id="compiled.classes.path">
+      <fileset dir="${build.class.dir}" includes="**/*.class"/>
+    </path>
+    <javadoc sourcepath="${src.dir}" destdir="${javadoc.dir}">
+      <classpath refid="compiled.classes.path"/>
+      <classpath refid="compile.lib.path"/>
+    </javadoc>
+  </target>
+</project>

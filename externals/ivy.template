@@ -1,0 +1,14 @@
+<ivy-module version="1.0">
+    <info organisation="thirdparty" module="PRODUCT" revision="VERSION"/>
+    <configurations>
+    	<conf name="compile"/>
+        <conf name="runtime"/>
+        <conf name="sources"/>
+        <conf name="doc"/>
+    </configurations>
+    <publications> 
+      <artifact name="PRODUCT" conf="compile,runtime"/>
+      <artifact name="PRODUCT-sources" type="source" ext="jar" conf="sources" />      
+      <artifact name="PRODUCT-doc" type="doc" ext="jar" conf="doc" />      
+    </publications>
+    <dependencies defaultconf="compile->compile;runtime->runtime;src->src">

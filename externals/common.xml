@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="common">
+  <!-- some variables used -->
+  <property name="src.dir" value="src"/>
+  <property name="test.src.dir" value="test"/>
+	
+  <property name="externals.lib.dir" value="externals/lib"/>
+  <property name="tasks.lib.dir" value="${externals.lib.dir}/ant"/>
+  <property name="ivy.lib.dir" value="${externals.lib.dir}/ivy"/>
+  <property name="externals.ivy.dir" value="externals/ivy"/>
+  <property name="ivy.settings.file" value="ivysettings.xml"/>
+  <property name="ivy.settings" value="${externals.ivy.dir}/${ivy.settings.file}"/>
+	
+  <property name="base.dir" value="ant"/>
+  <property name="tmp.dir" value="${base.dir}/tmp" />
+	
+  <property name="javadoc.dir" value="${base.dir}/javadoc"/>
+  
+  <property name="lib.cache.dir" value="${base.dir}/cache"/>
+  <property name="lib.dir" value="${base.dir}/lib"/>
+  <property name="test.lib.dir" value="${lib.dir}/test"/>
+  <property name="compile.lib.dir" value="${lib.dir}/compile"/>
+  <property name="runtime.lib.dir" value="${lib.dir}/runtime"/>
+  <property name="utility.lib.dir" value="${lib.dir}/utility"/>
+	
+  <property name="dist.dir" value="${base.dir}/dist"/>
+
+  <property name="build.class.dir" value="${base.dir}/build"/>
+  	
+  <property name="test.base.dir" value="${base.dir}/test"/>
+  <property name="test.class.dir" value="${test.base.dir}/class"/>
+  <property name="instrument.class.dir" value="${test.base.dir}/cobertura"/>
+  <property name="test.tmp.dir" value="${test.base.dir}/tmp"/>
+	
+  <property name="reports.dir" value="${base.dir}/reports"/>
+  <property name="cobertura.reports.dir" value="${reports.dir}/cobertura"/>
+  <property name="junit.reports.dir" value="${reports.dir}/junit"/>
+  <property name="ivy.reports.dir" value="${reports.dir}/ivy"/>
+	
+  <property name="cobertura.format" value="html"/>
+	
+  <property name="eclipse.lib.dir" value="lib"/>
+  <property name="target" value="1.7"/>
+  <property name="source" value="1.7"/>
+  <property name="debuglevel" value="lines,vars,source"/>
+	
+  <property name="eclipse.classpath.template" value="externals/eclipse/classpath_template"/>
+  <property name="eclipse.project.template" value="externals/eclipse/project_template"/>
+	
+  <!-- paths used for compilation and run  -->
+  <!-- path id=".path">
+    <fileset dir="${build.class.dir}" includes="**/*.class"/>
+  </path-->
+  <path id="lib.path.id">
+    <fileset dir="${lib.dir}" includes="**/*.jar"/>
+  </path>
+  <path id="compile.lib.path">
+    <fileset dir="${compile.lib.dir}" includes="**/*.jar"/>
+  </path>
+  <path id="runtime.lib.path">
+    <fileset dir="${runtime.lib.dir}" includes="**/*.jar"/>
+  </path>
+  <path id="test.lib.path">
+    <fileset dir="${test.lib.dir}" includes="**/*.jar"/>
+  </path>
+  <path id="utility.lib.path">
+    <fileset dir="${utility.lib.dir}" includes="**/*.jar"/>
+  </path>
+  <path id="ivy.lib.path">
+    <fileset dir="${ivy.lib.dir}" includes="*.jar"/>
+  </path>	
+  <path id="tasks.lib.path">
+	<fileset dir="${tasks.lib.dir}" includes="*.jar" />
+  </path>
+	
+  <taskdef resource="fr/jayasoft/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+	
+  <target name="clean" description="--&gt; clean the project">
+    <delete dir="${build.class.dir}"/>
+    <delete dir="${test.base.dir}"/>
+    <delete dir="${dist.dir}"/>
+    <delete dir="${lib.dir}"/>
+  	<delete dir="${javadoc.dir}"/>
+  </target>
+	
+  <target name="clean-cache" depends="init-ivy">
+    <ivy:cleancache/>
+    <delete dir="${lib.dir}"/>
+  </target>
+	
+  <target name="clean-all" depends="clean-cache,clean"/>
+	
+  <target name="init" depends="init-ivy">
+  	<delete dir="${tmp.dir}" failonerror="false"/>
+	<tstamp><format property="timestamp" pattern="yyyy-MM-dd HH:mm" locale="dk,DK" /></tstamp>
+    <mkdir dir="${base.dir}"/>
+    <mkdir dir="${javadoc.dir}"/>
+    <mkdir dir="${lib.dir}"/>
+    <mkdir dir="${lib.cache.dir}"/>
+    <mkdir dir="${compile.lib.dir}"/>
+    <mkdir dir="${runtime.lib.dir}"/>
+    <mkdir dir="${test.lib.dir}"/>
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${build.class.dir}"/>
+    <mkdir dir="${test.class.dir}"/>
+    <mkdir dir="${eclipse.lib.dir}"/>
+  	<mkdir dir="${tmp.dir}"/>
+  </target>
+	
+  <target name="init-ivy" unless="init.ivy.done">
+    <ivy:configure file="${ivy.settings}"/>
+    <property name="init.ivy.done" value="true"/>
+  </target>
+	
+  <target name="retrieve" depends="init" description="--&gt; retreive dependencies with ivy">
+    <ivy:resolve file="ivy.xml" refresh="true"/>
+    <ivy:retrieve pattern="${lib.dir}/[conf]/[artifact]-[revision].[ext]"/>
+  </target>
+	
+  <target name="report" depends="retrieve" description="--&gt; generates a report of dependencies">
+    <ivy:report todir="${ivy.reports.dir}"/>
+  </target>
+	
+  <target name="eclipse" description="Generate .project and .classpath files.">
+    <copy tofile=".classpath" overwrite="false" failonerror="false" file="${eclipse.classpath.template}">
+      <filterset>
+        <filter token="PROJECT_NAME" value="${ant.project.name}"/>
+      </filterset>
+    </copy>
+    <copy tofile=".project" overwrite="false" failonerror="false" file="${eclipse.project.template}">
+      <filterset>
+        <filter token="PROJECT_NAME" value="${ant.project.name}"/>
+      </filterset>
+    </copy>
+  </target>
+</project>
